@@ -106,3 +106,4 @@ ENV/
 /.idea/
 /out/
 *.iml
+.Rproj.user
