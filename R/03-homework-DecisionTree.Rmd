@@ -1,0 +1,39 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+
+library(tidyverse)
+library(caret)
+
+set.seed(123)
+df <- read_delim("../data/mlbootcamp5_train.csv", delim = ";")
+
+```
+
+```{r}
+
+
+trainIndex <- createDataPartition(factor(df$cardio), p = 0.7, 
+                                  list = TRUE, 
+                                  times = 1)
+
+tr_control <- trainControl(method = "LGOCV", number = 5, p = 0.7)
+
+tune_grid <-  data.frame(cp = c(0.01, 0.05), maxdepth = 3)
+                          
+
+trained <- train(select(df, -cardio), factor(df$cardio),
+                 method = "rpart",
+                 metric = "Accuracy",
+                 trControl = tr_control,
+                 #tuneGrid = tune_grid
+                 )
+
+```
+```{r}
+trained$bestTune
+```
+
