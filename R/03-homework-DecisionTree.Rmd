@@ -4,15 +4,72 @@ output: html_notebook
 ---
 
 ```{r setup}
-
 library(tidyverse)
 library(caret)
+library(rpart)
+library(rpart.plot)
+```
+
+# Regression Trees пакета rpart
+## Пример с функцией
+```{r}
+X <- seq(-2, 2, 0.5)
+y <- X^3
+
+qplot(X, y)
+```
+```{r}
+df <- data.frame(
+            x = X,
+            y = y
+        )
+
+fit <- rpart(y ~ x,
+                data = df,
+                method = "anova",
+                control = rpart.control(
+                    minsplit = 4,
+                    cp = 0.0001,
+                    xval = 5,  # number of cross-validations
+                    maxdepth = 3
+                )
+            )
+
+y_pred <- predict(fit, newdata = data.frame(x = X))
+qplot(X, y) + geom_step(aes(X, y_pred))
+
+```
+```{r}
+prp(fit)
+```
+
+
+## Задача из 3-го задания 'ML Course Open'
+### Дерево решений с глубиной 3
+```{r}
 
 set.seed(123)
 df <- read_delim("../data/mlbootcamp5_train.csv", delim = ";")
 
+y <- factor(df$cardio)
+X <- select(df, -cardio)
+
+tree <- rpart(cardio ~ .,
+                data = df, 
+                method = "class",
+                control = rpart.control(
+                    #minsplit = 12,
+                    cp = 0.0001,
+                    xval = 5,  # number of cross-validations
+                    maxdepth = 3
+                )
+              )
+
+prp(tree)
+
 ```
 
+### Грид сёрч
 ```{r}
 
 
@@ -20,20 +77,33 @@ trainIndex <- createDataPartition(factor(df$cardio), p = 0.7,
                                   list = TRUE, 
                                   times = 1)
 
-tr_control <- trainControl(method = "LGOCV", number = 5, p = 0.7)
+tr_control <- trainControl(
+    method = "LGOCV",
+    number = 5,
+    cp = 0.0012,
+    p = 0.7)
 
-tune_grid <-  data.frame(cp = c(0.01, 0.05), maxdepth = 3)
+tune_grid <- 
                           
-
 trained <- train(select(df, -cardio), factor(df$cardio),
-                 method = "rpart",
+                 method = "rpart2",
+                 preProcess = "scale",
                  metric = "Accuracy",
                  trControl = tr_control,
-                 #tuneGrid = tune_grid
+                 tuneGrid = data.frame(maxdepth = seq(from = 3, length.out = 10))
                  )
 
+# train(select(df, -cardio), factor(df$cardio),
+#                  method = "rpart",
+#                  preProcess = "scale",
+#                  metric = "Accuracy",
+#                  trControl = tr_control,
+#                  tuneGrid = data.frame(cp = seq(.0001, .01, length.out = 10))
+#     )$results
+
 ```
+
 ```{r}
-trained$bestTune
+trained$results
 ```
 
