@@ -107,3 +107,7 @@ ENV/
 /out/
 *.iml
 .Rproj.user
+
+R/.RData
+
+R/.Rhistory
