@@ -69,41 +69,124 @@ prp(tree)
 
 ```
 
-### Грид сёрч
+### Грид сёрч с caret
 ```{r}
 
 
 trainIndex <- createDataPartition(factor(df$cardio), p = 0.7, 
-                                  list = TRUE, 
+                                  list = FALSE, 
                                   times = 1)
+
+X_train <- select(df[trainIndex, ], -cardio)
+y_train <- factor(df$cardio[trainIndex])
 
 tr_control <- trainControl(
     method = "LGOCV",
     number = 5,
-    cp = 0.0012,
     p = 0.7)
-
-tune_grid <- 
-                          
-trained <- train(select(df, -cardio), factor(df$cardio),
-                 method = "rpart2",
+                      
+rpart_search <- train(X_train, y_train,
+                 method = "rpart",
                  preProcess = "scale",
                  metric = "Accuracy",
                  trControl = tr_control,
-                 tuneGrid = data.frame(maxdepth = seq(from = 3, length.out = 10))
+                 tuneGrid = data.frame(cp = seq(0.0001, 0.01, length.out = 10))
                  )
-
-# train(select(df, -cardio), factor(df$cardio),
-#                  method = "rpart",
-#                  preProcess = "scale",
-#                  metric = "Accuracy",
-#                  trControl = tr_control,
-#                  tuneGrid = data.frame(cp = seq(.0001, .01, length.out = 10))
-#     )$results
 
 ```
 
 ```{r}
-trained$results
+plot(rpart_search) 
+rpart_search$results
+```
+
+```{r}
+
+rpart_search <- train(X_train, y_train,
+                 method = "rpart2",
+                 preProcess = "scale",
+                 metric = "Accuracy",
+                 trControl = tr_control,
+                 tuneGrid = data.frame(maxdepth = seq(1, 20))
+                 )
+
+```
+```{r}
+plot(rpart_search) 
+```
+
+```{r}
+
+tree <- rpart(cardio ~ .,
+                data = df, 
+                method = "class",
+                control = rpart.control(
+                    cp = 0.0012,
+                    xval = 5,  # number of cross-validations
+                    maxdepth = 5
+                )
+              )
+
+prp(tree)
+```
+
+### Using MLR
+```{r}
+# https://stackoverflow.com/questions/36802846/how-to-tune-multiple-parameters-using-caret-package 
+library(mlr)
+
+## 1) Define the task
+## Specify the type of analysis (e.g. classification) and provide data and response variable
+task = makeClassifTask(data = df, target = "cardio")
+
+## 2) Define the learner
+## Choose a specific algorithm (e.g. linear discriminant analysis)
+lrn = makeLearner("classif.rpart")
+
+n = nrow(df)
+train.set = sample(n, size = 2/3 * n)
+test.set = setdiff(1:n, train.set)
+
+## 3) Fit the model
+## Train the learner on the task using a random subset of the data as training set
+model = train(lrn, task, subset = train.set)
+
+## 4) Make predictions
+## Predict values of the response variable for new observations by the trained model
+## using the other part of the data as test set
+pred = predict(model, task = task, subset = test.set)
+
+## 5) Evaluate the learner
+## Calculate the mean misclassification error and accuracy
+performance(pred, measures = list(mmce, acc))
+
+```
+
+```{r}
+
+control.grid <- makeTuneControlGrid() 
+# you can pass resolution = N if you want the algorithm to 
+# select N tune params given upper and lower bounds to a NumericParam
+# instead of a discrete one
+ps = makeParamSet(
+  makeDiscreteParam("cp", values = seq(0, 0.1, 0.001)),
+  makeDiscreteParam("maxdepth", values = c(1, 20))
+)
+
+resamp = makeResampleDesc("CV", iters = 10L)
+
+#you can also check all the tunable params
+getParamSet(lrn)
+
+#and the actual tuning, with accuracy as evaluation metric
+res = tuneParams(lrn, task = task, 
+                 resampling = resamp,
+                 control = control.grid, 
+                 par.set = ps, 
+                 measures = list(acc, timetrain))
+
+opt.grid = as.data.frame(res$opt.path)
+print(opt.grid)
+
 ```
 
