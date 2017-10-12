@@ -111,3 +111,5 @@ ENV/
 R/.RData
 
 R/.Rhistory
+
+data/movie_reviews_train.csv
