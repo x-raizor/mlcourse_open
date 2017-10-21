@@ -106,6 +106,7 @@ ENV/
 /.idea/
 /out/
 *.iml
+<<<<<<< HEAD
 .Rproj.user
 
 R/.RData
@@ -127,3 +128,9 @@ mclourse_open_share - homeworks solutions.webloc
 data/train/other_user_logs/user3998.csv
 
 data/*
+=======
+
+# data
+data/faces/
+data/news_data/
+>>>>>>> Yorko/master
