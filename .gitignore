@@ -123,3 +123,7 @@ data/column_remapping.json
 data/chicago_taxi_trips_2016_03.csv
 
 mclourse_open_share - homeworks solutions.webloc
+
+data/train/other_user_logs/user3998.csv
+
+data/*
