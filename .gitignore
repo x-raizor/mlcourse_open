@@ -79,7 +79,7 @@ celerybeat-schedule
 # dotenv
 .env
 
-# Jupyter 
+# Jupyter
 *.DS_Store
 
 # virtualenv
@@ -111,16 +111,6 @@ ENV/
 R/.RData
 
 R/.Rhistory
-
-data/movie_reviews_train.csv
-
-data/chicago_taxi_trips_2016_01.csv
-
-data/chicago_taxi_trips_2016_02.csv
-
-data/column_remapping.json
-
-data/chicago_taxi_trips_2016_03.csv
 
 mclourse_open_share - homeworks solutions.webloc
 
